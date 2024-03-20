@@ -125,6 +125,7 @@ alias prettypath="echo $PATH | tr ':' '\n'"
 alias reload='source ~/.zshrc'
 alias ng="ngrok http --domain=painfully-kind-elf.ngrok-free.app"
 alias gprune='git fetch --prune && local_branches=$(git branch -vv | grep ": gone]" | awk "{print \$1}") && for branch in $local_branches; do git branch -D $branch; done && echo "Done removing stale local branches."'
+alias chezmoiup='chezmoi add -r --exact ~/.oh-my-zsh'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
