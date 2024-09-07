@@ -8,3 +8,10 @@ This repo contains the basic configuration for my machines. This uses [Chezmoi](
 export GITHUB_USERNAME=nkamenar
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
+
+## Without script execution
+
+```shell
+export GITHUB_USERNAME=nkamenar
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --exclude=scripts --apply $GITHUB_USERNAME
+```
