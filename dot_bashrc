@@ -2,3 +2,6 @@
 if [ -z "$QMK_MSYS" ] && [ -t 1 ]; then
   exec zsh
 fi
+
+# Register brew path for VMs that have it installed
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv 2> /dev/null)" 2> /dev/null

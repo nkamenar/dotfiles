@@ -1,0 +1,122 @@
+---
+- name: Shell environment setup
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install necessary packages on Debian/Ubuntu
+      apt:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop:
+        - zsh
+        - git
+        - curl
+        - zoxide
+        - tar
+        - gzip
+        - bzip2
+        - unzip
+        - p7zip-full
+        - unrar
+        - wget
+        - build-essential
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Install necessary packages on Fedora/RedHat
+      dnf:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop:
+        - zsh
+        - git
+        - curl
+        - zoxide
+        - tar
+        - gzip
+        - bzip2
+        - unzip
+        - p7zip-full
+        - unrar
+        - wget
+        - build-essential
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Install Homebrew (Linux)
+      become: no
+      shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /home/linuxbrew/.linuxbrew/bin/brew
+      when: ansible_facts['os_family'] != 'Darwin'
+      register: homebrew_linux_installed
+
+    - name: Install Homebrew (macOS)
+      command: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+      args:
+        creates: /opt/homebrew/bin/brew
+      when: ansible_facts['os_family'] == 'Darwin'
+      register: homebrew_macos_installed
+
+    - name: Ensure Homebrew is up-to-date
+      become: no
+      shell: brew update
+      args:
+        executable: "{{ brew_shell }}"
+      when: homebrew_linux_installed is skipped and homebrew_macos_installed is skipped
+      vars:
+        brew_shell: "{{ '/bin/zsh' if ansible_facts['os_family'] == 'Darwin' else '/bin/bash' }}"
+
+    - name: Install Homebrew packages (Linux)
+      become: no
+      shell: source ~/.bashrc && brew install fzf jandedobbeleer/oh-my-posh/oh-my-posh
+      args:
+        executable: /bin/bash
+        creates: /home/linuxbrew/.linuxbrew/bin/fzf
+      when: ansible_facts['os_family'] != 'Darwin'
+      register: homebrew_packages_installed_linux
+
+    - name: Upgrade Homebrew packages (Linux)
+      become: no
+      shell: source ~/.bashrc && brew upgrade fzf jandedobbeleer/oh-my-posh/oh-my-posh
+      args:
+        executable: /bin/bash
+      when: ansible_facts['os_family'] != 'Darwin' and homebrew_packages_installed_linux is skipped
+
+    - name: Install necessary packages on macOS
+      shell: brew install zsh git fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget
+      when: ansible_facts['os_family'] == 'Darwin'
+      register: homebrew_macos_packages_installed
+
+    - name: Upgrade necessary packages on macOS
+      shell: brew upgrade zsh git curl fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget
+      when: ansible_facts['os_family'] == 'Darwin' and homebrew_macos_packages_installed is skipped
+
+    - name: Ensure zinit is installed and updated from the main branch
+      git:
+        repo: https://github.com/zdharma-continuum/zinit.git
+        dest: "{{ ansible_env.HOME }}/.local/share/zinit/zinit.git"
+        version: main
+        update: yes
+
+    - name: Ensure Zsh is the default shell for all real people users (including root)
+      command: "getent passwd"
+      register: passwd_entries
+
+    - name: Change shell to Zsh for all real people users (including root)
+      user:
+        name: "{{ item.split(':')[0] }}"
+        shell: /bin/zsh
+      loop: "{{ passwd_entries.stdout_lines }}"
+      when:
+        - item.split(':')[5].startswith('/home') or item.split(':')[5] == '/root'  # Include users with home directories under /home and root
+        - item.split(':')[6] not in ['/usr/sbin/nologin', '/bin/false']  # Skip system users with non-interactive shells
+
+    - name: Set Zsh as default shell on macOS
+      shell: chsh -s /opt/homebrew/bin/zsh
+      when: ansible_facts['os_family'] == 'Darwin'
+
+    - name: Display reminder to reconnect SSH session
+      debug:
+        msg: "Reminder: Please reconnect your SSH session to load the new default shell configuration."

@@ -1,125 +1,89 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -f "/opt/homebrew/bin/brew" ]]; then
+  # If you're using macOS, you'll want this enabled
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Register brew path for VMs that have it installed
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv 2> /dev/null)" 2> /dev/null
 
-# Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# Set the directory we want to store zinit and plugins
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="powerlevel10k/powerlevel10k"
+# Download Zinit, if it's not there yet
+if [ ! -d "$ZINIT_HOME" ]; then
+   mkdir -p "$(dirname $ZINIT_HOME)"
+   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+fi
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+# Source/Load zinit
+source "${ZINIT_HOME}/zinit.zsh"
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+# Add in zsh plugins
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-autosuggestions
+zinit light Aloxaf/fzf-tab
 
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+# Add in snippets
+zinit snippet OMZP::git
+zinit snippet OMZP::sudo
+zinit snippet OMZP::debian
+zinit snippet OMZP::aws
+zinit snippet OMZP::kubectl
+zinit snippet OMZP::kubectx
+zinit snippet OMZP::command-not-found
+zinit snippet OMZP::docker
+zinit snippet OMZP::docker-compose
+zinit snippet OMZP::node
+zinit snippet OMZP::ansible
 
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+# Load completions with caching
+autoload -Uz compinit
+if [[ -z "$ZSH_COMPDUMP" ]]; then
+  ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
+fi
+compinit -C  # Use -C to create and use a compiled zcompdump
 
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
+zinit cdreplay -q
 
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
+# Add in oh-my-posh
+eval "$(oh-my-posh init zsh --config $HOME/.config/oh-my-posh/zen.toml)"
 
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
+# Keybindings
+bindkey -e
+bindkey '^j' kill-whole-line
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
+bindkey '^[w' kill-region
+bindkey "^[[3~" delete-char
 
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
+# History
+HISTSIZE=5000
+HISTFILE=~/.zsh_history
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt appendhistory  # Append to history instead of overwriting
+setopt inc_append_history  # Immediately add new commands to history
+setopt sharehistory  # Share history between terminal sessions
+setopt hist_ignore_dups  # Ignore duplicate commands
+setopt hist_ignore_space  # Ignore commands starting with a space
+setopt extended_history  # Record timestamp for each command
 
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+# Completion styling
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' menu select
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*' sort yes
+zstyle ':completion:*' format '%d'
 
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(
-    aliases
-    git
-    ohmyzsh-full-autoupdate
-    npm
-    nvm
-    zsh-autosuggestions
-    zsh-shift-select
-)
-
-source $ZSH/oh-my-zsh.sh
-source $ZSH/zsh-interactive-cd.plugin.zsh
-
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-export EDITOR='code'
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
-alias c=clear
+# Aliases
+alias c='clear'
 alias convert-to-webp='for file in *.png; do ffmpeg -i "$file" "${file%.*}.webp"; done'
-alias ls="ls -l --color=auto"
+alias ls="ls -a --color"
 alias pnpmup="corepack prepare pnpm@latest --activate"
 alias prettypath="echo $PATH | tr ':' '\n'"
 alias reload='source ~/.zshrc'
@@ -127,7 +91,38 @@ alias ng="ngrok http --domain=painfully-kind-elf.ngrok-free.app"
 alias gprune='git fetch --prune && local_branches=$(git branch -vv | grep ": gone]" | awk "{print \$1}") && for branch in $local_branches; do git branch -D $branch; done && echo "Done removing stale local branches."'
 alias chezmoiup='chezmoi add -r --exact ~/.oh-my-zsh'
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# Aliases for Git shortcuts
+alias gco='git checkout'
+alias gs='git status'
+alias gl='git log --oneline --graph --decorate'
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+extract () {
+  if [ -f "$1" ]; then
+    case "$1" in
+      *.tar.bz2) tar xvjf "$1" ;;
+      *.tar.gz)  tar xvzf "$1" ;;
+      *.tar.xz)  tar xvJf "$1" ;;
+      *.bz2)     bunzip2 "$1"  ;;
+      *.rar)     unrar x "$1"  ;;
+      *.gz)      gunzip "$1"   ;;
+      *.tar)     tar xvf "$1"  ;;
+      *.tbz2)    tar xvjf "$1" ;;
+      *.tgz)     tar xvzf "$1" ;;
+      *.zip)     unzip "$1"    ;;
+      *.Z)       uncompress "$1" ;;
+      *.7z)      7z x "$1"     ;;
+      *)         echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file!"
+  fi
+}
+
+# Shell integrations
+if command -v fzf > /dev/null 2>&1; then
+  source <(fzf --zsh)
+fi
+
+if command -v zoxide > /dev/null 2>&1; then
+  eval "$(zoxide init --cmd cd zsh)"
+fi
