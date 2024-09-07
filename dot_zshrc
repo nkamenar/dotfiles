@@ -6,6 +6,9 @@ fi
 # Register brew path for VMs that have it installed
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv 2> /dev/null)" 2> /dev/null
 
+# Environment variable for toggling marlonrichert/zsh-autocomplete plugin (default is true)
+export LOAD_AUTOCOMPLETE=${LOAD_AUTOCOMPLETE:-true}
+
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
@@ -22,6 +25,12 @@ source "${ZINIT_HOME}/zinit.zsh"
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
+# Conditionally load the plugin based on the LOAD_AUTOCOMPLETE variable. marlonrichert/zsh-autocomplete
+# has a conflict with Aloxaf/fzf-tab and if both are active when you type "ls -"
+# the SSH session instantly disconnects as soon as you type the dash. Toggle with 'toggle-ac' alias
+if [ "$LOAD_AUTOCOMPLETE" = true ]; then
+  zinit light marlonrichert/zsh-autocomplete
+fi
 zinit light Aloxaf/fzf-tab
 
 # Add in snippets
@@ -90,6 +99,8 @@ alias reload='source ~/.zshrc'
 alias ng="ngrok http --domain=painfully-kind-elf.ngrok-free.app"
 alias gprune='git fetch --prune && local_branches=$(git branch -vv | grep ": gone]" | awk "{print \$1}") && for branch in $local_branches; do git branch -D $branch; done && echo "Done removing stale local branches."'
 alias chezmoiup='chezmoi add -r --exact ~/.oh-my-zsh'
+alias toggle-ac='export LOAD_AUTOCOMPLETE=$([ "$LOAD_AUTOCOMPLETE" = true ] && echo false || echo true) && echo "Autocomplete is now $([ "$LOAD_AUTOCOMPLETE" = true ] && echo on || echo off)" && exec zsh'
+
 
 # Aliases for Git shortcuts
 alias gco='git checkout'
