@@ -3,6 +3,26 @@
   hosts: localhost
   become: yes
   tasks:
+    - name: Install necessary packages on Arch Linux
+      pacman:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop:
+        - zsh
+        - git
+        - curl
+        - zoxide
+        - tar
+        - gzip
+        - bzip2
+        - unzip
+        - p7zip
+        - unrar
+        - wget
+        - base-devel
+      when: ansible_facts['os_family'] == 'Archlinux'
+      
     - name: Install necessary packages on Debian/Ubuntu
       apt:
         name: "{{ item }}"
