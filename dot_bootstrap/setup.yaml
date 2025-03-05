@@ -21,8 +21,9 @@
         - unrar
         - wget
         - base-devel
+        - fastfetch
       when: ansible_facts['os_family'] == 'Archlinux'
-      
+
     - name: Install necessary packages on Debian/Ubuntu
       apt:
         name: "{{ item }}"
@@ -41,6 +42,7 @@
         - unrar
         - wget
         - build-essential
+        - fastfetch
       when: ansible_facts['os_family'] == 'Debian'
 
     - name: Install necessary packages on Fedora/RedHat
@@ -60,7 +62,8 @@
         - p7zip-full
         - unrar
         - wget
-        - build-essential
+        - "@development-tools"
+        - fastfetch
       when: ansible_facts['os_family'] == 'RedHat'
 
     - name: Install Homebrew (Linux)
@@ -105,12 +108,12 @@
       when: ansible_facts['os_family'] != 'Darwin' and homebrew_packages_installed_linux is skipped
 
     - name: Install necessary packages on macOS
-      shell: brew install zsh git fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget
+      shell: brew install zsh git fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget fastfetch
       when: ansible_facts['os_family'] == 'Darwin'
       register: homebrew_macos_packages_installed
 
     - name: Upgrade necessary packages on macOS
-      shell: brew upgrade zsh git curl fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget
+      shell: brew upgrade zsh git curl fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget fastfetch
       when: ansible_facts['os_family'] == 'Darwin' and homebrew_macos_packages_installed is skipped
 
     - name: Ensure zinit is installed and updated from the main branch
