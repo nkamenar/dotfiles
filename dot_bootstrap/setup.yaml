@@ -92,7 +92,7 @@
 
     - name: Install Homebrew packages (Linux)
       become: no
-      shell: source ~/.bashrc && brew install fzf jandedobbeleer/oh-my-posh/oh-my-posh
+      shell: source ~/.bashrc && brew install fzf jandedobbeleer/oh-my-posh/oh-my-posh chezmoi
       args:
         executable: /bin/bash
         creates: /home/linuxbrew/.linuxbrew/bin/fzf
@@ -101,18 +101,18 @@
 
     - name: Upgrade Homebrew packages (Linux)
       become: no
-      shell: source ~/.bashrc && brew upgrade fzf jandedobbeleer/oh-my-posh/oh-my-posh
+      shell: source ~/.bashrc && brew upgrade fzf jandedobbeleer/oh-my-posh/oh-my-posh chezmoi
       args:
         executable: /bin/bash
       when: ansible_facts['os_family'] != 'Darwin' and homebrew_packages_installed_linux is skipped
 
     - name: Install necessary packages on macOS
-      shell: brew install zsh git fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget fastfetch
+      shell: brew install zsh git fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget fastfetch chezmoi
       when: ansible_facts['os_family'] == 'Darwin'
       register: homebrew_macos_packages_installed
 
     - name: Upgrade necessary packages on macOS
-      shell: brew upgrade zsh git curl fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget fastfetch
+      shell: brew upgrade zsh git curl fzf zoxide jandedobbeleer/oh-my-posh/oh-my-posh jetbrainsmono-nerd-font tar gzip bzip2 unzip p7zip unrar wget fastfetch chezmoi
       when: ansible_facts['os_family'] == 'Darwin' and homebrew_macos_packages_installed is skipped
 
     - name: Ensure zinit is installed and updated from the main branch
