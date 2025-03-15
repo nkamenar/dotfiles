@@ -42,7 +42,6 @@
         - unrar
         - wget
         - build-essential
-        - fastfetch
       when: ansible_facts['os_family'] == 'Debian'
 
     - name: Install necessary packages on Fedora/RedHat
